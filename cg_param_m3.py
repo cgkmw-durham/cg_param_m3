@@ -1212,8 +1212,8 @@ def get_coords(mol,beads):
 def get_smarts_matches(mol):
     #Get matches to SMARTS strings
     smarts_strings = {
-    'S([O-])(=O)(=O)O'  :    'Qa',
-    'S([O-])(=O)(=O)[C;!$(*F)]'   :    'Q0'
+    #'S([O-])(=O)(=O)O'  :    'Qa',
+    #'S([O-])(=O)(=O)[C;!$(*F)]'   :    'Q0'
     #'C(=O)O' : 'P1'
     #'CC' : 'C2',
     #'OO' : 'P5'
@@ -1248,7 +1248,7 @@ bead_types,charges,all_smi,DG_data = get_types(beads,mol,ring_beads)
 #Generate atomistic conformers
 nconfs = 1
 mol = Chem.AddHs(mol)
-AllChem.EmbedMultipleConfs(mol,numConfs=nconfs,randomSeed=random.randint(1,1000))
+AllChem.EmbedMultipleConfs(mol,numConfs=nconfs,randomSeed=random.randint(1,1000),useRandomCoords=True)
 AllChem.UFFOptimizeMoleculeConfs(mol)
 coords0 = get_coords(mol,beads)
 
