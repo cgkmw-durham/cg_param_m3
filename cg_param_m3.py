@@ -641,7 +641,8 @@ def get_smi(bead,mol):
     
 def get_types(beads,mol,ring_beads):
     #loops through beads and determines bead type
-    DG_data = read_DG_data('/home/ngrz58/unilever/automartini/auto_martini-master/rewrite/fragments-exp.dat')
+    script_path = os.path.dirname(os.path.realpath(__file__))
+    DG_data = read_DG_data('{}/fragments-exp.dat'.format(script_path))
     bead_types = []
     charges = []
     all_smi = []
