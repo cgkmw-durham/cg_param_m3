@@ -1114,7 +1114,6 @@ def write_angles(itp,bonds,constraints):
         itp.write('\n[angles]\n')
         coords = np.zeros((len(beads),3))
         thetas = np.zeros(len(angles))
-        print(thetas)
         for conf in mol.GetConformers():
             for i,bead in enumerate(beads):
                 coords[i] = bead_coords(bead,conf)
@@ -1124,12 +1123,10 @@ def write_angles(itp,bonds,constraints):
                 vec2 = np.subtract(coords[angle[2]],coords[angle[1]])
                 vec2 = vec2/np.linalg.norm(vec2)
                 theta = np.arccos(np.dot(vec1,vec2))
-                print(theta)
-                thetas[a] += (theta*180.0)/(np.pi*nconfs)
+                thetas[a] += theta
                 #print(vec1,vec2)
 
-        #thetas = thetas*180.0/(np.pi)
-        print(thetas)
+        thetas = thetas*180.0/(np.pi*nconfs)
 
 
         for a,t in zip(angles,thetas):
