@@ -78,14 +78,11 @@ def lone_atom(ties,A,A_init,scores,ring_beads,matched_maps,comp,exclusion_list):
     #Finds single-atom beads and takes atoms from adjacent beads
     temp_exclusions = []
 
-    print(comp)
- 
     n = 0
     for rank in ties:
         for node in rank:
             if len(comp[node]) == 1:
                 test_group = [comp[node][0]]
-                print(test_group)
                 temp_exclusions.append(test_group[0])
 
                 # Bonded in final CG iteration
@@ -97,7 +94,6 @@ def lone_atom(ties,A,A_init,scores,ring_beads,matched_maps,comp,exclusion_list):
                     if any(x in exclusion_list for x in comp[bonded[nbor]]):
                         bonded_sorted = np.delete(bonded_sorted,j)
                         bonded_scores = np.delete(bonded_scores,j)
-                print(bonded_sorted)
 
                 # Bonded in AA rep
                 aa_connects = A_init[comp[node][0]]
@@ -129,7 +125,6 @@ def lone_atom(ties,A,A_init,scores,ring_beads,matched_maps,comp,exclusion_list):
                             test_group.remove(b)
                     if test_group != []:
                         groups.append(test_group)
-    print(groups)
 
     exclusion_list.extend(temp_exclusions)
     temp_groups = groups[:]
@@ -158,7 +153,6 @@ def lone_atom(ties,A,A_init,scores,ring_beads,matched_maps,comp,exclusion_list):
             if any(atom in ring for atom in group) and i not in new_ring_beads:
                 new_ring_beads.append(i)
 
-    print(new_nodes)
     return new_nodes,ring_beads,exclusion_list
 
 
@@ -310,7 +304,6 @@ def iteration(results,itr,A_init,w_init,ring_beads,path_matrix,matched_maps):
             comp.append(bead_comp)
 
         results_dict['comp'] = comp[:]
-    print(results_dict)
 
 
     return results_dict,ring_beads,matched_maps
