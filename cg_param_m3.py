@@ -1217,9 +1217,9 @@ def get_coords(mol,beads):
 def get_smarts_matches(mol):
     #Get matches to SMARTS strings
     smarts_strings = {
-    #'S([O-])(=O)(=O)O'  :    'Qa',
-    #'S([O-])(=O)(=O)[C;!$(*F)]'   :    'Q0'
-    #'C(=O)O' : 'P1'
+    #'S([O-])(=O)(=O)O'  :    'Q4',
+    'S([O-])(=O)(=O)'   :    'Q5',#SQ5
+    'C(=O)O' : 'P1'#SP1
     #'CC' : 'C2',
     #'OO' : 'P5'
     #'CCC' : 'C2',
