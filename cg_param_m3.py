@@ -713,39 +713,31 @@ def param_bead(bead,bead_smi,ring_size,frag_size,ring,qbead,don,acc,DG_data):
     #Parametrises bead type
     types = ['P6','P5','P4','P3','P2','P1','N6','N5','N4','N3','N2','N1','C6','C5','C4','C3','C2','C1']
 
-    #Get h-bonding category
-    #if acc or don:
-    #    category = 'da'
-    #    if acc and don:
-    #        suffix = 'da'
-    #    elif acc:
-    #        suffix = 'a'
-    #    elif don:
-    #        suffix = 'd'
-    #else:
-    category = 'standard'
-    suffix = ''
-
-    path_length = get_size(bead,path_matrix)#path_length counts bonds spanning fragment
-
-    #Get bead sizes from path length regardless of ring status
-    if path_length == 1:
-        size = 'T'
-        prefix = 'T'
-    elif path_length == 2:
-        size = 'S'
-        prefix = 'S'
-    else:
-        size = 'R'
-        prefix = ''
-
     #Check for SMARTS matches
     btype = ''
     for m,match in enumerate(matched_maps):
         if sorted(match) == sorted(bead):
             btype = matched_beads[m]
+            prefix = ''
+            suffix = ''
 
-    if btype == '':
+    if btype = '':
+        category = 'standard'
+        suffix = ''
+
+        path_length = get_size(bead,path_matrix)#path_length counts bonds spanning fragment
+        
+        #Get bead sizes from path length regardless of ring status
+        if path_length == 1:
+            size = 'T'
+            prefix = 'T'
+        elif path_length == 2:
+            size = 'S'
+            prefix = 'S'
+        else:
+            size = 'R'
+            prefix = ''
+
         #Parametrise charged beads based on h-bonding behaviour
         if qbead != 0:
             if acc and don:
@@ -766,28 +758,12 @@ def param_bead(bead,bead_smi,ring_size,frag_size,ring,qbead,don,acc,DG_data):
                 print('{} not on list'.format(bead_smi))
                 alogps = get_alogps(bead_smi)
 
-            
-
             #Get difference between fragment DG_OW and all beads
             diffs = get_diffs(alogps,ring_size,frag_size,category,size)
-
-            #If close to Nda bead, parametrise from h-bonding behaviour
-            #if diffs[5] == 1.0 and (acc or don):
-            #    if acc and don:
-            #        btype = 'Nda'
-            #    elif acc:
-            #        btype = 'Na'
-            #    elif don:
-            #        btype = 'Nd'
-            #Otherwise, pick bead with closest DG_OW
-            #else:
             sort_diffs = np.argsort(diffs)
             btype = types[sort_diffs[0]]
 
     btype = prefix + btype + suffix
-    #Ring beads are S type
-    #if ring:
-    #    btype = 'S' + btype
 
     return btype                        
 
