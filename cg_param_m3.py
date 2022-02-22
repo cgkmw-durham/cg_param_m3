@@ -727,13 +727,6 @@ def param_bead(bead,bead_smi,ring_size,frag_size,ring,qbead,don,acc,DG_data):
     suffix = ''
 
     path_length = get_size(bead,path_matrix)#path_length counts bonds spanning fragment
-   # if ring_size != 0:
-   #     if frag_size == 2:#frag_size counts only atoms on the ring
-   #         size = 'T'
-   #         prefix = 'T'
-   #     elif frag_size == 3:
-   #         size = 'S'
-   #        prefix = 'S'
 
     #Get bead sizes from path length regardless of ring status
     if path_length == 1:
