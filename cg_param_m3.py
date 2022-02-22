@@ -721,7 +721,7 @@ def param_bead(bead,bead_smi,ring_size,frag_size,ring,qbead,don,acc,DG_data):
             prefix = ''
             suffix = ''
 
-    if btype = '':
+    if btype == '':
         category = 'standard'
         suffix = ''
 
@@ -977,18 +977,27 @@ def ring_bonding(real,virtual,A_cg,dihedrals):
     return A_cg,dihedrals
         
 
-def get_masses(bead_types,virtual_sites):
-    #Get masses, including setting virtual sites to 0
+def get_masses(all_smi,A_cg,virtual):
+    #Calculate mass of each fragment in amu
+    m_H = 1.00727645209
     masses = []
-    for b,bead in enumerate(bead_types):
-        if bead[0] == 'S':
-            if b in virtual_sites:
-                masses.append(0.0)
-            else:
-                masses.append(45.0)
-        else:
-            masses.append(72.0)
+    for b,smi in enumerate(all_smi):
+        aa_frag = Chem.MolFromSmiles(smi)
+        #mass is mass of whole fragment minus m_H*neighbours
+        frag_mass = rdMolDescriptors.CalcExactMolWt(aa_frag)
+        excess_mass = np.sum(A_cg[b])*m_H
+        masses.append(frag_mass-excess_mass)
 
+    print(masses)
+    print(virtual)
+    #Redistribute virtual masses
+    for vsite,refs in virtual.items():
+        vmass = masses[vsite]
+        masses[vsite] = 0.0
+        for rsite,weight in refs.items():
+            masses[rsite] += weight*vmass
+
+    print(masses)
     return masses
             
 
@@ -1007,6 +1016,7 @@ def write_itp(mol_name,bead_types,coords0,charges,all_smi,A_cg,itp_name):
 
 def write_atoms(itp,A_cg,mol_name,bead_types,charges,all_smi,coords,ring_beads):
     #Writes [atoms] block in itp file
+
     real = []
     virtual = {}
     #Split ring beads into real and virtual sites
@@ -1015,15 +1025,11 @@ def write_atoms(itp,A_cg,mol_name,bead_types,charges,all_smi,coords,ring_beads):
         virtual.update(vs)
         real.append(rs)
 
-    masses = get_masses(bead_types,virtual)
+    masses = get_masses(all_smi,A_cg,virtual)
 
     itp.write('\n[atoms]\n')
     
     for b in range(len(bead_types)):
-    #    if DG_data[all_smi[b]]['src'] == 'E':
-    #        DG_src = 'Experiment'
-    #    elif DG_data[all_smi[b]]['src'] == 'A':
-    #        DG_src = 'ALOGPS'
         itp.write('{:5d}{:>5}{:5d}{:>5}{:>5}{:5d}{:>10.3f}{:>10.3f};{}\n'.format(b+1,bead_types[b],1,mol_name,'CG'+str(b+1),b+1,charges[b],masses[b],all_smi[b]))
 
     return virtual,real
