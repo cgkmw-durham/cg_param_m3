@@ -64,6 +64,11 @@ m3_beads = {
     #'da': ['P6','P5','P4','P3','P2','P1','N6','N5','N4','N3','N2','N1']
     }
 
+preset_beads = {
+    'CC':'TC2',
+    'CCC':'SC2'
+    }
+
 def read_DG_data(DGfile):
     # Reads Delta G_OW for fragments into dictionary
     DG_data = {}
@@ -680,6 +685,7 @@ def get_types(beads,mol,ring_beads):
     #loops through beads and determines bead type
     script_path = os.path.dirname(os.path.realpath(__file__))
     DG_data = read_DG_data('{}/fragments-exp.dat'.format(script_path))
+
     bead_types = []
     charges = []
     all_smi = []
@@ -691,50 +697,63 @@ def get_types(beads,mol,ring_beads):
         all_smi.append(bead_smi)
         bead_types.append(param_bead(bead,bead_smi,ring_size,frag_size,any(i in ring for ring in ring_beads),qbead,i in h_donor,i in h_acceptor,DG_data))
 
-    return(bead_types,charges,all_smi,DG_data)
+    if tuning:
+        bead_types = tune_model(beads,bead_types,all_smi)
+
+    return bead_types,charges,all_smi,DG_data
+
+def tune_model(beads,bead_types,all_smi):
+    
+    scores,ties = rank_nodes(A_cg)
+
+    def is_tunable(nbor):
+        if any(nbor in ring for ring in ring_beads):
+            return False
+        elif not any(element in all_smi[nbor] for element in ['O','N','S','F','Cl','Br','I']):
+            return False
+        else:
+            return True
+
+    tuned = []
+    fixed = []
+
+    for rank in ties:
+        for bead in rank:
+            if not any(bead in ring for ring in ring_beads):
+                bonded = [j for j in np.nonzero(A_cg[bead])[0]]
+                for nbor in bonded:
+                    if scores[nbor] >= scores[bead] and is_tunable(nbor):
+                        tuned.append(nbor)
+                        fixed.append(bead)
+
+    
+    for t,f in zip(tuned,fixed):
+        bead_types[t] = tune_bead(beads[t],bead_types[t],beads[f],bead_types[f])
+    
+    return bead_types
+#
+#def tuning_pairs(all_smi):
+#
+#    not_tuned = []
+#    tuned = []
+#
+#    for i,bsmi in enumerate(all_smi):
+#        if any(i in ring for ring in ring_beads):
+#            not_tuned.append(i) #Don't tune ring beads
+#        elif not any(element in bsmi for element in ['O','N','S','F','Cl','Br','I']:
+#            not_tuned.append(i) #Don't tune alkyl chains
+#        else:
+#            tuned.append(i) #Potentially tune everything else
+#
+#    #Find suitable reference beads (if any)
+#    for t in tuned:
+#        bonded = [j for j in np.nonzero(A_cg[t])[0]]
+#        for n in bonded[:]:
+#            if any(n in ring for ring in ring_beads):
+#                
 
 def get_diffs(alogps,ring_size,frag_size,category,size):
     #Gets free energy differences between fragment and all bead types
-    #delta_Gs = {
-    #    0:{
-    #        'standard':{
-    #            'T': [-14.8,-15.2,-12.1,-9.8,-8.8,-7.2,-6.1,-4.9,-2.9,-3.1,0.3,2.3,3.6,4.5,6.4,6.7,7.8,12.0],
-    #            'S': [-12.0,-11.8,-9.8,-7.7,-6.9,-5.2,-4.2,-3.6,-0.9,-1.8,2.1,3.6,5.3,6.3,8.4,9.2,9.9,14.2],
-    #            'R': [-9.2,-9.1,-7.4,-5.1,-3.8,-2.0,-1.1,0.0,2.2,1.8,5.6,8.1,10.1,11.2,13.4,13.8,14.8,18.9]
-    #        },
-    #        'da':{
-    #            'T': [-12.7,-13.2,-9.5,-7.8,-6.8,-5.0,-4.1,-2.8,-1.2,-1.4,2.3,3.9],
-    #            'S': [-9.6,-9.5,-7.8,-6.1,-5.4,-3.7,-2.5,-1.0,1.1,0.2,3.8,6.0],
-    #            'R': [-7.4,-7.0,-5.1,-3.5,-1.9,0.2,1.0,2.2,4.3,3.8,7.8,10.7]   
-    #        }
-    #    },
-    #    4:{
-    #        'standard':{
-    #            'T': [-5.23,-5.77,-3.77,-0.35,0.44,2.18,2.90,4.08,6.03,5.41,8.92,10.64,11.84,12.56,14.35,14.74,15.74,19.10],
-    #            'S': [-3.89,-4.15,-1.84,-0.08,0.78,2.39,3.31,4.20,6.66,5.84,9.78,11.56,12.84,13.99,16.20,16.56,17.32,20.91],
-    #            'R': [-4.27,-4.01,-1.64,0.26,1.66,3.55,4.53,5.43,7.93,7.43,11.49,13.79,15.63,16.77,18.90,19.61,20.59,24.01]
-    #        }
-    #    #    'da':{
-    #    #        'T': [-12.7,-13.2,-9.5,-7.8,-6.8,-5.0,-4.1,-2.8,-1.2,-1.4,2.3,3.9],
-    #    #        'S': [-9.6,-9.5,-7.8,-6.1,-5.4,-3.7,-2.5,-1.0,1.1,0.2,3.8,6.0],
-    #    #        'R': [-7.4,-7.0,-5.1,-3.5,-1.9,0.2,1.0,2.2,4.3,3.8,7.8,10.7]
-    #    #    }
-    #    },
-    #    3:{
-    #        'standard':{
-    #            'T': [-7.73,-8.25,-6.19,-2.63,-1.85,0.12,0.80,2.12,4.12,3.66,7.13,8.93,10.11,10.85,12.71,12.92,13.99,17.66],
-    #            'S': [-5.45,-5.57,-3.22,-1.59,-0.61,0.99,1.87,2.82,5.28,4.46,8.36,10.01,11.38,12.53,14.61,15.07,15.78,19.58],
-    #            'R': [-4.68,-4.33,-2.10,-0.27,1.13,3.05,4.04,4.93,7.32,6.90,10.69,12.92,14.77,15.83,18.11,18.61,19.73,23.19]
-    #        }
-    #    },
-    #    2:{
-    #        'standard':{
-     #           'T': [-10.22,-10.74,-8.61,-4.98,-4.09,-2.10,-1.33,0.09,1.97,1.62,5.16,6.99,8.26,9.04,10.98,11.23,16.19],
-     #           'S': [-7.64,-7.69,-5.34,-3.62,-2.57,-0.92,-0.10,0.90,3.47,2.51,6.57,8.29,9.61,10.85,12.95,13.49,14.21,18.13],
-     #           'R': [-6.43,-6.10,-3.79,-1.94,-0.50,1.42,2.40,3.30,5.83,5.27,9.22,11.67,13.39,14.43,16.75,17.37,18.41,22.03]
-     #       }}}
-
-
     diffs = np.abs(np.array(delta_Gs[ring_size-frag_size][category][size]) - alogps)
 
     return diffs
@@ -748,36 +767,38 @@ def param_bead(bead,bead_smi,ring_size,frag_size,ring,qbead,don,acc,DG_data):
     for m,match in enumerate(matched_maps):
         if sorted(match) == sorted(bead):
             btype = matched_beads[m]
-            prefix = ''
-            suffix = ''
 
-    if btype == '':
+    if bead_smi in preset_beads:
+        btype = preset_beads[bead_smi]
+
+    #if btype == '':
         #Get h-bonding label
-        if don and not acc:
-            category = 'da'
-            suffix = 'd'
-        elif acc and not don:
-            category = 'da'
-            suffix = 'a'
-        else:
-            category = 'standard'
-            suffix = ''
+    #if don and not acc:
+    #    category = 'da'
+    #    suffix = 'd'
+    #elif acc and not don:
+    #    category = 'da'
+    #    suffix = 'a'
+    #else:
+    category = 'standard'
+    suffix = ''
 
-        types = m3_beads[category]
+    types = m3_beads[category]
 
-        path_length = get_size(bead,path_matrix)#path_length counts bonds spanning fragment
+    path_length = get_size(bead,path_matrix)#path_length counts bonds spanning fragment
         
         #Get bead sizes from path length regardless of ring status
-        if path_length == 1:
-            size = 'T'
-            prefix = 'T'
-        elif path_length == 2:
-            size = 'S'
-            prefix = 'S'
-        else:
-            size = 'R'
-            prefix = ''
+    if path_length == 1:
+        size = 'T'
+        prefix = 'T'
+    elif path_length == 2:
+        size = 'S'
+        prefix = 'S'
+    else:
+        size = 'R'
+        prefix = ''
 
+    if btype == '':
         #Parametrise charged beads based on h-bonding behaviour
         if qbead != 0:
             btype = 'Qx' #placeholder, not a real bead type
@@ -796,7 +817,7 @@ def param_bead(bead,bead_smi,ring_size,frag_size,ring,qbead,don,acc,DG_data):
             sort_diffs = np.argsort(diffs)
             btype = types[sort_diffs[0]]
 
-    btype = prefix + btype + suffix
+        btype = prefix + btype + suffix
 
     return btype                        
 
@@ -1245,6 +1266,31 @@ def get_smarts_matches(mol):
 
     return matched_maps,matched_beads
 
+
+def tune_bead(var_bead,var_type,fix_bead,fix_type):
+    print(var_bead,var_type,fix_bead,fix_type)
+    dimer_smi = Chem.rdmolfiles.MolFragmentToSmiles(mol,fix_bead+var_bead)
+
+    dimer_DG = get_alogps(dimer_smi)
+
+    var_size = var_type[0] if (var_type[0] in ['T','S']) else 'R'
+    fix_size = fix_type[0] if (fix_type[0] in ['T','S']) else 'R'
+
+    var_cat = 'standard'
+    fix_cat = 'standard'
+
+    fix_base = fix_type[1:] if (len(fix_type) == 3) else fix_type
+
+    #Get closest sum of two beads
+    fix_DG = delta_Gs[0][fix_cat][fix_size][m3_beads[fix_cat].index(fix_base)]
+    dimer_sum = np.asarray(delta_Gs[0][var_cat][var_size]) + fix_DG
+    dimer_diff = np.abs(dimer_sum - dimer_DG)
+    var_base = m3_beads[var_cat][np.argmin(dimer_diff)]
+
+    var_type = var_base if (var_size == 'R') else (var_size+var_base)
+
+    return var_type
+
 #Generate molecule object
 smi = sys.argv[1]
 mol_name = 'MOL'
@@ -1257,6 +1303,7 @@ A_cg,beads,ring_beads,path_matrix = mapping(mol,ring_atoms,matched_maps,3)
 non_ring = [b for b in range(len(beads)) if not any(b in ring for ring in ring_beads)]
 
 #Parametrise beads
+tuning = True
 bead_types,charges,all_smi,DG_data = get_types(beads,mol,ring_beads)
 
 #Generate atomistic conformers
