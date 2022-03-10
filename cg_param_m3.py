@@ -1303,7 +1303,7 @@ A_cg,beads,ring_beads,path_matrix = mapping(mol,ring_atoms,matched_maps,3)
 non_ring = [b for b in range(len(beads)) if not any(b in ring for ring in ring_beads)]
 
 #Parametrise beads
-tuning = True
+tuning = False
 bead_types,charges,all_smi,DG_data = get_types(beads,mol,ring_beads)
 
 #Generate atomistic conformers
