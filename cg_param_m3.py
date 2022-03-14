@@ -725,6 +725,9 @@ def tune_model(beads,bead_types,all_smi):
                     if scores[nbor] >= scores[bead] and is_tunable(nbor):
                         tuned.append(nbor)
                         fixed.append(bead)
+                if (bead not in fixed) and is_tunable(bead) and len(bonded) >= 1:
+                    tuned.append(bead)    
+                    fixed.append(bonded[0])
 
     
     for t,f in zip(tuned,fixed):
@@ -1303,11 +1306,11 @@ A_cg,beads,ring_beads,path_matrix = mapping(mol,ring_atoms,matched_maps,3)
 non_ring = [b for b in range(len(beads)) if not any(b in ring for ring in ring_beads)]
 
 #Parametrise beads
-tuning = False
+tuning = True
 bead_types,charges,all_smi,DG_data = get_types(beads,mol,ring_beads)
 
 #Generate atomistic conformers
-nconfs = 1
+nconfs = 200
 mol = Chem.AddHs(mol)
 AllChem.EmbedMultipleConfs(mol,numConfs=nconfs,randomSeed=random.randint(1,1000),useRandomCoords=True)
 AllChem.UFFOptimizeMoleculeConfs(mol)
