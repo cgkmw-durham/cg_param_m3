@@ -711,6 +711,8 @@ def tune_model(beads,bead_types,all_smi):
             return False
         elif not any(element in all_smi[nbor] for element in ['O','N','S','F','Cl','Br','I']):
             return False
+        elif any(sorted(match) == sorted(beads[bead]) for m,match in enumerate(matched_maps)):
+            return False
         else:
             return True
 
@@ -719,7 +721,7 @@ def tune_model(beads,bead_types,all_smi):
 
     for rank in ties:
         for bead in rank:
-            if not any(bead in ring for ring in ring_beads):
+            if not any(bead in ring for ring in ring_beads) and not ('Q' in bead_types[bead]):
                 bonded = [j for j in np.nonzero(A_cg[bead])[0]]
                 for nbor in bonded:
                     if scores[nbor] >= scores[bead] and is_tunable(nbor):
