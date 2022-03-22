@@ -546,27 +546,27 @@ def get_paths(A_atom,mol):
     return path_matrix
                 
 
+def parse_mapping_file():
+    with open('mapping','r') as map_file:
+        n_beads = int(map_file.readline())
+        partitioning_list = []
+        for i in range(n_beads):
+            bead = [int(i.strip('\n')) for i in map_file.readline().split()]
+            partitioning_list.append(bead)
+
+    return partitioning_list
+
 
 def mapping(mol,ring_atoms,matched_maps,n_iter):
     #Initialise data structures
-    #mol = Chem.MolFromSmiles(smiles)
     A_atom = np.asarray(Chem.GetAdjacencyMatrix(mol))
     path_matrix = floyd_warshall(csgraph=A_atom,directed=False)
     w_init = [atom.GetMass() for atom in mol.GetAtoms()]
-    #w_init = [1.0 for atom in mol.GetAtoms()]
-    ring_beads,comp,A_init = group_rings(A_atom,ring_atoms,matched_maps,mol)
-    #w_init = get_weights(comp,w_init)
 
-    # Do spectral mapping iterations
-    results = []
-    for itr in range(n_iter):
-        results_dict,ring_beads,matched_maps = iteration(results,itr,A_init,w_init,ring_beads,path_matrix,matched_maps)
-        results.append(results_dict)
- 
+    comp_final = parse_mapping_file()
+    A_final = new_connectivity(comp_final,A_atom)
 
     # Get final mapping
-    results_dict_final = postprocessing(results,ring_atoms,n_iter,A_init,w_init,path_matrix,matched_maps)
-    #sizes = get_sizes(results[best]['comp'],A_init)
     ring_beads = []
     for ring in ring_atoms:
         cgring = []
@@ -576,7 +576,7 @@ def mapping(mol,ring_atoms,matched_maps,n_iter):
                     cgring.append(i)
         ring_beads.append(cgring)
 
-    return results_dict_final['A'],results_dict_final['comp'],ring_beads,path_matrix#,sizes
+    return A_final,comp_final,ring_beads,path_matrix#,sizes
 
 def get_ring_atoms(mol):
     #get ring atoms and systems of joined rings 
