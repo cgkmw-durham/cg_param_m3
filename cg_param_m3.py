@@ -571,7 +571,7 @@ def mapping(mol,ring_atoms,matched_maps,n_iter):
     for ring in ring_atoms:
         cgring = []
         for atom in ring:
-            for i,bead in enumerate(results_dict_final['comp']):
+            for i,bead in enumerate(comp_final):
                 if (atom in bead) and (i not in cgring):
                     cgring.append(i)
         ring_beads.append(cgring)
