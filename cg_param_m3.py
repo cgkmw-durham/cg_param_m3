@@ -1252,7 +1252,8 @@ def get_smarts_matches(mol):
     smarts_strings = {
     #'S([O-])(=O)(=O)O'  :    'Q2'
     'S([O-])(=O)(=O)'   :    'SQ4',#SQ4
-    'C[N+](C)(C)C' : 'Q2'
+    'C[N+](C)(C)C' : 'Q2',
+    'CC[N+](C)(C)[O-]' : 'P6'
     #'C(=O)O' : 'P1'#SP1
     #'CC' : 'C2',
     #'OO' : 'P5'
