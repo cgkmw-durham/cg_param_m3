@@ -573,13 +573,26 @@ def mapping(mol,ring_atoms,matched_maps,n_iter):
     #w_init = [1.0 for atom in mol.GetAtoms()]
     ring_beads,comp,A_init = group_rings(A_atom,ring_atoms,matched_maps,mol)
     #w_init = get_weights(comp,w_init)
+    unmapped = [a for a in range(mol.GetNumHeavyAtoms) if not any(a in frag for frag in (ring_atoms+matched_maps))]
 
-    # Do spectral mapping iterations
-    results = []
-    for itr in range(n_iter):
-        results_dict,ring_beads,matched_maps = iteration(results,itr,A_init,w_init,ring_beads,path_matrix,matched_maps)
-        results.append(results_dict)
+    if unmapped:
+        unm_smi = Chem.rdmolfiles.MolFragmenttoSmiles(mol,unmapped)
+        unm_mol = Chem.MolFromSmiles(unm_smi)
+        unm_frags = Chem.GetMolFrags(unm_mol)
+        for frag in unmapped_frags:
+            indices = [unmapped[k] for k in frag]
+            frag_smi = Chem.rdmolfiles.MolFragmentToSmiles(mol,indices)
+            frag_mol = Chem.MolFromSmiles(frag_smi)
+            A_frag = np.asarray(Chem.GetAdjacencyMatrix(frag_mol))
+            w_frag = [atom.GetMass() for atom in frag_mol.GetAtoms()]
+            path_frag = floyd_warshall(csgraph=A_frag,directed=False)
 
+            # Do spectral mapping iterations
+            results = []
+            for itr in range(n_iter):
+                results_dict,ring_beads,matched_maps = iteration(results,itr,A_frag,w_frag,[],path_frag,[])
+                results.append(results_dict)
+            ### Continue here
 
  
 
