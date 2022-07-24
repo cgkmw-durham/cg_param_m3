@@ -66,7 +66,11 @@ m3_beads = {
 
 preset_beads = {
     'CC':'TC2',
-    'CCC':'SC2'
+    'CCC':'SC2',
+    'O=CO':'SP2',
+    'CC(=O)O':'SN5',
+    'COC=O':'N6',
+    'COC(C)=O':'N4'
     }
 
 def read_DG_data(DGfile):
@@ -150,20 +154,33 @@ def lone_atom(ties,A,A_init,scores,ring_beads,matched_maps,comp,exclusion_list):
 
                 #Steal atoms from most central neighbours most 'central' neighbours
                 stolen_from = []
-                score_prev = scores[bonded[bonded_sorted[0]]]
+                print(ring_beads)
+                print(matched_maps)
+                print(comp)
                 for j in bonded_sorted:
+                    score_prev = scores[bonded[bonded_sorted[0]]]
                     scorej = scores[bonded[j]]
                     if np.isclose(scorej,score_prev):
                         stolen_from.append(bonded[j])
                         # For 2-atom beads at ends of molecules, just add whole bead
-                        if len(comp[bonded[j]]) == 2 and len(np.nonzero(A[bonded[j]])[0]) == 1:
+                        if len(comp[bonded[j]]) == 2:# and len(np.nonzero(A[bonded[j]])[0]) == 1:
+                            print('pair')
                             test_group.extend(comp[bonded[j]])
                         elif any(np.size(np.intersect1d(comp[bonded[j]],ring)) != 0 for ring in ring_beads):
+                            print('ring')
                             test_group.extend(comp[bonded[j]])
+#                        elif any(np.size(np.intersect1d(comp[bonded[j]],comp[smatch[0]])) != 0 for smatch in matched_maps):
+#                            print('smarts')
+#                            test_group.extend(comp[bonded[j]])
                         else:
+                            print('steal')
                             for a in aa_bonded:
                                 if a in comp[bonded[j]]:
                                     test_group.append(a)
+                else:
+                    print('smarts')
+                    bonded_mm = [i for i in np.nonzero(connects)[0]]
+                    test_group.extend(comp[bonded_mm[0]])
                 groups.append(test_group)
                 n = len(groups) - 1
                 #Remove atoms from original groups
@@ -562,6 +579,8 @@ def mapping(mol,ring_atoms,matched_maps,n_iter):
     for itr in range(n_iter):
         results_dict,ring_beads,matched_maps = iteration(results,itr,A_init,w_init,ring_beads,path_matrix,matched_maps)
         results.append(results_dict)
+
+
  
 
     # Get final mapping
@@ -1253,12 +1272,8 @@ def get_smarts_matches(mol):
     #'S([O-])(=O)(=O)O'  :    'Q2'
     'S([O-])(=O)(=O)'   :    'SQ4',#SQ4
     'C[N+](C)(C)C' : 'Q2',
-    'CC[N+](C)(C)[O-]' : 'P6'
-    #'C(=O)O' : 'P1'#SP1
-    #'CC' : 'C2',
-    #'OO' : 'P5'
-    #'CCC' : 'C2',
-    #'CCCC': 'C2'
+    'CC[N+](C)(C)[O-]' : 'P6',
+    'C(=O)O' : 'SP2'
     }
     ## Add function to get rid of groups with duplicate atoms 
     matched_maps = []
