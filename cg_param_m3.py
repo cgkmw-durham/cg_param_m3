@@ -574,7 +574,7 @@ def mapping(mol,ring_atoms,matched_maps,n_iter):
     #w_init = [1.0 for atom in mol.GetAtoms()]
     ring_beads,comp,A_init = group_rings(A_atom,ring_atoms,matched_maps,mol)
     #w_init = get_weights(comp,w_init)
-    mapped = ring_atoms+matched_maps
+    mapped = ring_beads+matched_maps
     unmapped = [a for a in range(mol.GetNumHeavyAtoms()) if not any(a in frag for frag in mapped)]
     print('Unmapped:',unmapped)
 
