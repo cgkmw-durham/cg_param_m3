@@ -19,6 +19,7 @@ from scipy.sparse.csgraph import floyd_warshall
 from scipy.spatial import ConvexHull, convex_hull_plot_2d
 import collections
 import random
+from operator import itemgetter
 
 delta_Gs = {
     0:{
@@ -140,7 +141,8 @@ def lone_atom(ties,A,A_init,scores,ring_beads,matched_maps,comp,exclusion_list):
 
                 # Bonded in final CG iteration
                 connects = A[node]
-                bonded = [i for i in np.nonzero(connects)[0] if not any(i in m for m in matched_maps)]
+                bonded = [i for i in np.nonzero(connects)[0] if not any( np.size(np.intersect1d(comp[i],m)) != 0 for m in matched_maps)]
+                print(bonded)
                 bonded_scores = np.asarray([scores[bonded[k]] for k in range(len(bonded))])
                 bonded_sorted = np.argsort(bonded_scores)
                 for j,nbor in enumerate(bonded_sorted[:]):
@@ -154,16 +156,13 @@ def lone_atom(ties,A,A_init,scores,ring_beads,matched_maps,comp,exclusion_list):
 
                 #Steal atoms from most central neighbours most 'central' neighbours
                 stolen_from = []
-                print(ring_beads)
-                print(matched_maps)
-                print(comp)
                 for j in bonded_sorted:
                     score_prev = scores[bonded[bonded_sorted[0]]]
                     scorej = scores[bonded[j]]
                     if np.isclose(scorej,score_prev):
                         stolen_from.append(bonded[j])
                         # For 2-atom beads at ends of molecules, just add whole bead
-                        if len(comp[bonded[j]]) == 2:# and len(np.nonzero(A[bonded[j]])[0]) == 1:
+                        if len(comp[bonded[j]]) == 2 and len(np.nonzero(A[bonded[j]])[0]) == 1:
                             print('pair')
                             test_group.extend(comp[bonded[j]])
                         elif any(np.size(np.intersect1d(comp[bonded[j]],ring)) != 0 for ring in ring_beads):
@@ -177,7 +176,7 @@ def lone_atom(ties,A,A_init,scores,ring_beads,matched_maps,comp,exclusion_list):
                             for a in aa_bonded:
                                 if a in comp[bonded[j]]:
                                     test_group.append(a)
-                else:
+                if len(bonded_sorted) == 0:
                     print('smarts')
                     bonded_mm = [i for i in np.nonzero(connects)[0]]
                     test_group.extend(comp[bonded_mm[0]])
@@ -218,6 +217,7 @@ def lone_atom(ties,A,A_init,scores,ring_beads,matched_maps,comp,exclusion_list):
         for i,group in enumerate(new_nodes): 
             if any(atom in ring for atom in group) and i not in new_ring_beads:
                 new_ring_beads.append(i)
+    print(new_nodes)
 
     return new_nodes,ring_beads,exclusion_list
 
@@ -467,7 +467,7 @@ def group_rings(A,ring_atoms,matched_maps,moli):
  
 def postprocessing(results,ring_atoms,n_iter,A_init,w_init,path_matrix,matched_maps):
     #Checks if overall mapping is too high resolution
-    last_iter = results[n_iter -1]
+    last_iter = results[-1]
     exclusion_list = []
     postprocess = 1
     while postprocess:
@@ -504,6 +504,7 @@ def path_contraction(last_iter,postprocess,A_init,w_init,ring_beads,matched_maps
 
     oldA = last_iter['A']
     comp = last_iter['comp']
+    print(comp)
     w = get_weights(comp,w_init,path_matrix)
 
     A_weighted = include_weights(oldA,w)
@@ -573,31 +574,55 @@ def mapping(mol,ring_atoms,matched_maps,n_iter):
     #w_init = [1.0 for atom in mol.GetAtoms()]
     ring_beads,comp,A_init = group_rings(A_atom,ring_atoms,matched_maps,mol)
     #w_init = get_weights(comp,w_init)
-    unmapped = [a for a in range(mol.GetNumHeavyAtoms) if not any(a in frag for frag in (ring_atoms+matched_maps))]
+    mapped = ring_atoms+matched_maps
+    unmapped = [a for a in range(mol.GetNumHeavyAtoms()) if not any(a in frag for frag in mapped)]
+    print('Unmapped:',unmapped)
 
     if unmapped:
-        unm_smi = Chem.rdmolfiles.MolFragmenttoSmiles(mol,unmapped)
-        unm_mol = Chem.MolFromSmiles(unm_smi)
-        unm_frags = Chem.GetMolFrags(unm_mol)
-        for frag in unmapped_frags:
-            indices = [unmapped[k] for k in frag]
-            frag_smi = Chem.rdmolfiles.MolFragmentToSmiles(mol,indices)
+        #unm_smi = Chem.rdmolfiles.MolFragmentToSmiles(mol,unmapped)
+        #print(unm_smi)
+        #unm_mol = Chem.MolFromSmiles(unm_smi)
+        #unm_frags = Chem.GetMolFrags(unm_mol)
+        #print(unm_frags)
+        unm_frags = []
+        for a,b in itertools.groupby(enumerate(unmapped), lambda x:x[0]-x[1]):
+            unm_frags.append(list(map(itemgetter(1),b)))
+        print(unm_frags)
+
+        for frag in unm_frags:
+            if len(frag) == 1:
+                mapped.append([frag[0]])
+                continue
+            #indices = [unmapped[k] for k in frag]
+            #print(indices)
+            frag_smi = Chem.rdmolfiles.MolFragmentToSmiles(mol,frag)
             frag_mol = Chem.MolFromSmiles(frag_smi)
             A_frag = np.asarray(Chem.GetAdjacencyMatrix(frag_mol))
             w_frag = [atom.GetMass() for atom in frag_mol.GetAtoms()]
             path_frag = floyd_warshall(csgraph=A_frag,directed=False)
+            print(frag_smi)
 
             # Do spectral mapping iterations
-            results = []
+            frag_results = []
             for itr in range(n_iter):
-                results_dict,ring_beads,matched_maps = iteration(results,itr,A_frag,w_frag,[],path_frag,[])
-                results.append(results_dict)
+                results_dict,ring_beads,frag_maps = iteration(frag_results,itr,A_frag,w_frag,[],path_frag,[])
+                frag_results.append(results_dict)
             ### Continue here
 
- 
+           # results_frag = [{'comp':mapped,'A':new_connectivity(mapped,A_frag)}] 
+            frag_results_final = postprocessing(frag_results,[],n_iter,A_frag,w_frag,path_frag,[])
+
+            for new_bead in frag_results_final['comp']:
+                mapped.append([frag[a] for a in new_bead])
+
+    print('Mapped:',mapped)
+
+    results = [{'comp':mapped,'A':new_connectivity(mapped,A_atom)}]
 
     # Get final mapping
-    results_dict_final = postprocessing(results,ring_atoms,n_iter,A_init,w_init,path_matrix,matched_maps)
+    print(n_iter)
+    print(matched_maps)
+    results_dict_final = postprocessing(results,ring_atoms,n_iter,A_atom,w_init,path_matrix,matched_maps)
     #sizes = get_sizes(results[best]['comp'],A_init)
     ring_beads = []
     for ring in ring_atoms:
