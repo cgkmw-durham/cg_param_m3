@@ -1311,7 +1311,8 @@ def get_smarts_matches(mol):
     '[S;!$(*OC)]([O-])(=O)(=O)'   :    'SQ4',#SQ4
     'C[N+](C)(C)C' : 'Q2',
     'CC[N+](C)(C)[O-]' : 'P6',
-    'C(=O)O' : 'SP2'
+    'C(=O)O' : 'SP2',
+    'CCO':'SP1'
     }
     ## Add function to get rid of groups with duplicate atoms 
     matched_maps = []
