@@ -128,8 +128,8 @@ def rank_nodes(A):
     return scores,ties
 
 def lone_atom(ties,A,A_init,scores,ring_beads,matched_maps,comp,exclusion_list):
-    groups = []
     #Finds single-atom beads and takes atoms from adjacent beads
+    groups = []
     temp_exclusions = []
 
     n = 0
@@ -279,7 +279,7 @@ def spectral_grouping(ties,A,scores,ring_beads,comp,path_matrix,max_size,matched
     return groups,ring_beads,matched_maps
 
 def process_rings(ring_beads,matched_maps,groups):
-
+    # Updates compositions of ring beads after a mapping iteration
     # If ring-bead not already in a bead, add as its own bead
     for bead in ring_beads:
         if not any(any(a in group for a in bead) for group in groups):
@@ -338,6 +338,7 @@ def new_connectivity(groups,oldA):
     return newA
 
 def iteration(results,itr,A_init,w_init,ring_beads,path_matrix,matched_maps):
+    # One iteration of spectral mapping algorithm
     results_dict = dict.fromkeys(['A','comp'])
 
     # Get properties of current mapping
@@ -563,6 +564,7 @@ def get_paths(A_atom,mol):
 
 
 def mapping(mol,ring_atoms,matched_maps,n_iter):
+    #Get mapping scheme from mol object
     #Initialise data structures
     A_atom = np.asarray(Chem.GetAdjacencyMatrix(mol))
     path_matrix = floyd_warshall(csgraph=A_atom,directed=False)
@@ -1232,9 +1234,6 @@ def write_virtual_sites(itp,virtual_sites):
         done.append(vs)
         itp.write('{}\n'.format(excl))
 
-smi = sys.argv[1]    
-mol_name = 'MOL'
-
 def get_coords(mol,beads):
     #Calculates coordinates for output gro file
     mol_Hs = Chem.AddHs(mol)
@@ -1259,13 +1258,12 @@ def get_smarts_matches(mol):
     #Get matches to SMARTS strings
     smarts_strings = {
     'S([O-])(=O)(=O)O'  :    'Q2',
-    '[S;!$(*OC)]([O-])(=O)(=O)'   :    'SQ4',#SQ4
+    '[S;!$(*OC)]([O-])(=O)(=O)'   :    'SQ4',
     'C[N+](C)(C)C' : 'Q2',
     'CC[N+](C)(C)[O-]' : 'P6',
     'C(=O)O' : 'SP2'
-    #'CCO':'SP1'
     }
-    ## Add function to get rid of groups with duplicate atoms 
+    
     matched_maps = []
     matched_beads = []
     for smarts in smarts_strings:
