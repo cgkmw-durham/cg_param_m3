@@ -17,4 +17,3 @@ The easiest way to install these dependencies is with conda
 $ conda create -c rdkit -n cg_param rdkit numpy scipy requests
 $ conda activate cg_param
 ~~~~
-
