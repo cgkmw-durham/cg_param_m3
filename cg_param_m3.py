@@ -414,7 +414,7 @@ def group_rings(A,ring_atoms,matched_maps,moli):
         for frag in unmapped_frags:
             #Do mapping for each continuous fragment
             indices = [unmapped[k] for k in frag]
-            frag_smi = Chem.rdmolfiles.MolFragmentToSmiles(moli,unmapped)
+            frag_smi = Chem.rdmolfiles.MolFragmentToSmiles(moli,indices)
             frag_smi = frag_smi.upper()
             frag_mol = Chem.MolFromSmiles(frag_smi) 
             A_frag = np.asarray(Chem.GetAdjacencyMatrix(frag_mol))
