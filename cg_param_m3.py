@@ -437,7 +437,9 @@ def group_rings(A,ring_atoms,matched_maps,moli):
          
                 new_beads.extend(spectral_grouping(ties,A_frag,scores,frag_ring_beads,comp,path_frag,2,matched_maps)[0])
             for bead in new_beads:
-                new_groups.append([indices[x] for x in bead])
+                for i in matched_maps:
+                    if bead.sort() != i.sort():
+                        new_groups.append([indices[x] for x in bead])
               
     ring_beads = new_groups[:]
     # Add non-ring atoms
