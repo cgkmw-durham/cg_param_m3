@@ -1,0 +1,22 @@
+Line 417: Switched 'unmapped' to 'indices'
+frag_smi = Chem.rdmolfiles.MolFragmentToSmiles(moli,indices)
+
+-----The variable 'unmapped' contains indexes for all the internal atoms of rings which contain internal atoms (i.e. a fused 6,5 ring).
+-----When there are several identical fragments in 'unmapped', RDKit command 'MolFragmentToSmiles' on line 417 returns a SMILES code for each with a '.' between disconnected fragments.
+-----This fragment's adjacency matrix is then assessed and as there are unconnected atoms, division-by-0 errors occur when normalising the atoms using the smallest eigenvalue.
+-----'indices' is a local variable, containing only the current iterations unmapped atoms. Using it avoids this duplication.
+
+
+
+
+
+Lines 440-442: Added new loop and if statement
+for i in matched_maps:
+      if bead.sort() != i.sort():
+            new_groups.append([indices[x] for x in bead])
+
+-----Addresses an issue with molecules containing a ring with internal atoms (i.e. a fused 6,5 ring) and a matched map fragment (usually a charged group).
+-----e.g. ClC1=CC=C(SC(/C=C/C(CCC/2)=C(C3=CC(C)=CC(C)=C3)C2=C\C=C4N(CCCS(=O)([O-])=O)C(C=C(Cl)C=C5)=C5S\4)=[N+]6CCCS(=O)([O-])=O)C6=C1
+-----The updated cg_param now checks to ensure the matched maps aren't added to the "new_groups" list following the handling of the ring molecule's internal bead.
+-----The matched fragments are mapped elsewhere so should be skipped in this routine.
+-----The new loop checks through each mapped group and makes sure the current new bead is not already mapped. Values are sorted to ensure group indexes are properly compared.
