@@ -1063,7 +1063,7 @@ def write_itp(mol_name,bead_types,coords0,charges,all_smi,A_cg,itp_name):
     #writes gromacs topology file
     with open(itp_name,'w') as itp:
         itp.write('[moleculetype]\n')
-        itp.write('MOL    2\n')
+        itp.write(' ' + mol_name + '    2\n')
         virtual,real = write_atoms(itp,A_cg,mol_name,bead_types,charges,all_smi,coords0,ring_beads)
         bonds,constraints,dihedrals = write_bonds(itp,A_cg,ring_beads,real,virtual)
         angles = write_angles(itp,bonds,constraints)
