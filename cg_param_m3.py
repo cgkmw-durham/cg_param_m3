@@ -1047,8 +1047,7 @@ def get_masses(all_smi,A_cg,virtual):
         excess_mass = np.sum(A_cg[b])*m_H
         masses.append(frag_mass-excess_mass)
 
-    print(masses)
-    print(virtual)
+    print("Virtual:", virtual)
     #Redistribute virtual masses
     for vsite,refs in virtual.items():
         vmass = masses[vsite]
@@ -1056,15 +1055,15 @@ def get_masses(all_smi,A_cg,virtual):
         for rsite,weight in refs.items():
             masses[rsite] += weight*vmass
 
-    print(masses)
+    print("Mass:", masses)
     return masses
-            
+
 
 def write_itp(mol_name,bead_types,coords0,charges,all_smi,A_cg,itp_name):
     #writes gromacs topology file
     with open(itp_name,'w') as itp:
         itp.write('[moleculetype]\n')
-        itp.write('MOL    2\n')
+        itp.write(' ' + mol_name + '    2\n')
         virtual,real = write_atoms(itp,A_cg,mol_name,bead_types,charges,all_smi,coords0,ring_beads)
         bonds,constraints,dihedrals = write_bonds(itp,A_cg,ring_beads,real,virtual)
         angles = write_angles(itp,bonds,constraints)
@@ -1227,7 +1226,7 @@ def write_virtual_sites(itp,virtual_sites):
         itp.write('{}\n'.format(excl))
 
 smi = sys.argv[1]    
-mol_name = 'MOL'
+mol_name = sys.argv[4] if len(sys.argv) >= 5 else 'MOL'
 
 def get_coords(mol,beads):
     #Calculates coordinates for output gro file
@@ -1300,7 +1299,7 @@ def tune_bead(var_bead,var_type,fix_bead,fix_type):
 
 #Generate molecule object
 smi = sys.argv[1]
-mol_name = 'MOL'
+mol_name = sys.argv[4] if len(sys.argv) >= 5 else 'MOL'
 mol = Chem.MolFromSmiles(smi)
 
 #Coarse-grained mapping
@@ -1310,8 +1309,8 @@ A_cg,beads,ring_beads,path_matrix = mapping(mol,ring_atoms,matched_maps,3)
 non_ring = [b for b in range(len(beads)) if not any(b in ring for ring in ring_beads)]
 
 #Parametrise beads
-tuning = bool(int(sys.argv[4]))
-print(tuning)
+tuning = True if len(sys.argv) < 6 else sys.argv[5] in ["y", "Y"]
+print("Bead parameters tuning:", tuning)
 bead_types,charges,all_smi,DG_data = get_types(beads,mol,ring_beads)
 
 #Generate atomistic conformers
