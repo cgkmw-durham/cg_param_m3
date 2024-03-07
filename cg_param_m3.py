@@ -1253,9 +1253,13 @@ def get_smarts_matches(mol):
     #Get matches to SMARTS strings
     smarts_strings = {
     'S([O-])(=O)(=O)O'  :    'Q2',
-    '[S;!$(*OC)]([O-])(=O)(=O)'   :    'SQ4',#SQ4
+    '[S;!$(*OC)]([O-])(=O)(=O)'   :    'SQ4p',#SQ4
+    'CC[N+](C)(C)[O-]' : 'P6',
+    'CC(=O)[O-]' : 'SQ5n',
+    'CC[N+D1]' : 'SQ4p',
+    'C[N+]C' : 'SQ3p',
     'C[N+](C)(C)C' : 'Q2',
-    'CC[N+](C)(C)[O-]' : 'P6'
+    'CC(C)[N+]C' : 'Q2p'
     #'C(=O)O' : 'P1'#SP1
     #'CC' : 'C2',
     #'OO' : 'P5'
