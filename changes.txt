@@ -1,56 +1,76 @@
-Thanks for using cg_kmw. Latest version: https://github.com/cgkmw-durham/cg_param_m3
+Line 417: Switched 'unmapped' to 'indices'
+frag_smi = Chem.rdmolfiles.MolFragmentToSmiles(moli,indices)
 
-This version is associated with the following publication, in preparation:
+-----The variable 'unmapped' contains indexes for all the internal atoms of rings which contain internal atoms (i.e. a fused 6,5 ring).
+-----When there are several identical fragments in 'unmapped', RDKit command 'MolFragmentToSmiles' on line 417 returns a SMILES code for each with a '.' between disconnected fragments.
+-----This fragment's adjacency matrix is then assessed and as there are unconnected atoms, division-by-0 errors occur when normalising the atoms using the smallest eigenvalue.
+-----'indices' is a local variable, containing only the current iterations unmapped atoms. Using it avoids this duplication.
 
-[1] A. Gredelj, J. Roberts, E. Kearney, E.L. Barrett, N. Haywood, D. Sheffield, G. Hodges and M.A. Miller, Predicting aquatic toxicity of anionic hydrocarbon and perfluorinated surfactants using membrane-water partition coefficients from coarse-grained simulations
 
-Previous versions were released with the following publications, where explanations of the methodology can be found:
 
-[2] T.D. Potter, N. Haywood, A. Teixeria, G. Hodges, E.L. Barrett and M.A. Miller, Partitioning into Phophatidylcholine-Cholesterol Membreane: Lipsome Measurements, Coarse-Grained Simulations, and Implications for Bioaccumulation, Environ. Sci.: Processes Impacts, 2023, 25, 1082-1093, DOI: https://doi.org/10.1039/D3EM00081H 
 
-[3] T.D. Potter, E.L. Barrett and M.A. Miller, Automated Coarse-Grained Mapping Algorithm for the Martini Force Field and Benchmarks for Membrane–Water Partitioning, J. Chem. Theory Comput., 2021, 17, 5777-5791, https://doi.org/10.1021/acs.jctc.1c00322.
 
-Major changes:
------ Inclusion of verbose mode to assist interpretation of results and debugging.
------ Switch to center of geometry mapping of bead coordinates.
------ Changes to spectral mapping algorithm: floats now allowed on the adjacency matrix, and a weighting function is imposed to avoid large values in matrix diagonalisations found for large, branched molecules.
------ Inclusion of Martini X beads. These are only automatically assigned in fluorinated molecule with more then 2 fluorines together, intended to capture behaviour of PFAS (poly/perfluoroalkyl substances).
------ Inclusion of new sulfonate parameterisation and ester bead assignment.
------ Additional bug fixes.
+Lines 440-450: Added new loop and if statement
+if matched_maps:
+     match = False
+     for i in matched_maps:
+          sorted_match=sorted(i)
+          sorted_bead=sorted(bead)
+          if sorted_match ==sorted_bead:
+               match=True
+     if match:
+          new_groups.append([indices[x] for x in bead])
+else:
+     new_groups.append([indices[x] for x in bead])
 
-Verbose mode:
------ Lines 1553-1560.
------ Added parsing commands to increase code usability.
------ Added flag to print useful data throughout the codes execution.
------ Added flag to print labelled svg of the molecule being mapped.
------ Added flag to activate dimer "tuning" (subject of separate publication, in preparation).
------ Added help flag to advise on using parsing.
+-----Addresses an issue with molecules containing a ring with internal atoms (i.e. a fused 6,5 ring) and a matched map fragment (usually a charged group).
+-----e.g. ClC1=CC=C(SC(/C=C/C(CCC/2)=C(C3=CC(C)=CC(C)=C3)C2=C\C=C4N(CCCS(=O)([O-])=O)C(C=C(Cl)C=C5)=C5S\4)=[N+]6CCCS(=O)([O-])=O)C6=C1
+-----The updated cg_param now checks to ensure the matched maps aren't added to the "new_groups" list following the handling of the ring molecule's internal bead.
+-----The matched fragments are mapped elsewhere so should be skipped in this routine.
+-----The new loop checks through each mapped group and makes sure the current new bead is not already mapped. Values are sorted to ensure group indexes are properly compared.
 
-Center of geometry:
------ Lines 1002-1029, 1407-1439.
------ Added flags to select Center of Mass (COM) mapping. Center of Geometry (COG) mapping is default.
------ CoG mapping is now recommended by the Martini developers in P. C. T. Souza et al., Martini 3: a general purpose force field for coarse-grained molecular dynamics, Nature Methods, 2021, 18, 382-388
------ CoG mapping added, hydrogens included in determination of position, so this has a notable impact on bead coordinates as opposed to the previous COM mapping.
 
-Spectral mapping:
------ Lines 122-144, 618.
------ Added function to scale spectral mapping algorithm dynamically. This reduces the variance in eigenvector magnitudes, avoiding precision errors in large, highly branched molecules.
 
-Martini X beads for halogens:
------ Lines 75, 782-822, 937-941.
------ Included halogen bead log Kow values.
------ Added code to access halogen beads if >= 2 fluorines are in a bead.
------ Adds alternative charge bead assignment in the case of sulfonates or carboxylates with an adjacent bead with >= 2 fluorines.
 
-Inclusion of new sulfonate parameteriasation and ester bead assignment:
------ Lines 83-86, 1444-1450
------ Added new assignments dereived for sulfonates in Ref [1] above. The ester bead assignements are derieved in a further publication (in preparation).
 
-Misc Bug Fixes:
 
------ Line 422-427, 451, 453, 562-569, 576-577, 1327, 1332: Added use of atom mapping to track atom indices between subfragments.
------ Lines 440-450: Added new loop and if statement to prevent manually matched groups being double counted
------ Line 478: Added '.split(".")[0]' to prevent crashes when identical manually-assigned groups are in a molecule.
------ Line 503-506: Added if statement checks to ensure identical manually-assigned groups are all counted independently in paramerisation.
------ Line 704: Solved error in parameterisation, where fragments are incorrectly assessed as if disconnected. Ad hoc fix removed these colons.
+Line 422-427, 451, 453, 562-569, 576-577, 1327, 1332: Added use of atom mapping to track atom indices between subfragments.
+new_groups.append([int(core_map[x]) for x in bead])
+...
+assign_atom_maps(frag_mol)
+core_map=re.findall(r"\:([^\]]*)\]",frag_smi)
+if len(core_map) != len(indices):
+	core_map.insert(0,0)
+...
+def assign_atom_maps(mol_dict):
+    
+    #Assign atom maps, allowing indexes to be passed from major fragments to subfragments.
+    for atom in mol_dict.GetAtoms():
+        atom.SetAtomMapNum(atom.GetIdx())
+    return mol_dict
+...
+def mapping(mol,ring_atoms,matched_maps,n_iter,mol_dict):
+...
+    assign_atom_maps(mol_dict) #Assign atom maps to allow tracking of atom indicies between subfragments
+    ring_beads,comp,A_init = group_rings(A_atom,ring_atoms,matched_maps,mol_dict)
+...
+mol_dict = Chem.MolFromSmiles(smi) 
+...
+A_cg,beads,ring_beads,path_matrix = mapping(mol,ring_atoms,matched_maps,3,mol_dict)
 
+-----Atom maps are designed for fragment indices during reactions. 
+-----Useful for tracking subfragment identities, where fragment would otherwise be renumbered to reflect new connectivity.
+-----llows generatlisation of algorithm to extened ring structures.
+-----e.g. c1cc2CCC4CCCc3ccc(c1)c2c34
+
+
+
+
+
+
+Line 704: Solved error in parameterisation, where fragments are incorrectly assessed as if disconnected.
+bead_smi=bead_smi.replace(":","")
+
+-----RDKit module MolToSmiles with option 'kekuleSmiles=True' sometimes returns ':' in fragments despite them being contiguous.
+-----e.g. ClC1=CC=C(SC(/C=C/C(CCC/2)=C(C3=CC(C)=CC(C)=C3)C2=C\C=C4N(CCCS(=O)([O-])=O)C(C=C(Cl)C=C5)=C5S\4)=[N+]6CCCS(=O)([O-])=O)C6=C1 
+-----Ad hoc fix to resolve this issue
