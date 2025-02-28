@@ -414,10 +414,17 @@ def group_rings(A,ring_atoms,matched_maps,moli):
         for frag in unmapped_frags:
             #Do mapping for each continuous fragment
             indices = [unmapped[k] for k in frag]
-            frag_smi = Chem.rdmolfiles.MolFragmentToSmiles(moli,indices)
+            frag_smi = Chem.rdmolfiles.MolFragmentToSmiles(moli,unmapped).split(".")[0] #Split to ensure identical groups are handled separately
             frag_smi = frag_smi.upper()
             frag_mol = Chem.MolFromSmiles(frag_smi) 
             A_frag = np.asarray(Chem.GetAdjacencyMatrix(frag_mol))
+
+            #Assign atom map so that subfrags can be reassigned. 
+            assign_atom_maps(frag_mol)
+            #Find atom map assignments (could also call using mol.GetAtomIDx) to allow backmapping for fragment. Add 0 if relevant, as this is not printed in the SMILES by defualt
+            core_map=re.findall(r"\:([^\]]*)\]",frag_smi)
+            if len(core_map) != len(indices):
+                core_map.insert(0,0)
 
             #Check if there are complete rings within unmapped fragments
             frag_ring_atoms = get_ring_atoms(frag_mol)
@@ -437,10 +444,21 @@ def group_rings(A,ring_atoms,matched_maps,moli):
          
                 new_beads.extend(spectral_grouping(ties,A_frag,scores,frag_ring_beads,comp,path_frag,2,matched_maps)[0])
             for bead in new_beads:
-                for i in matched_maps:
-                    if bead.sort() != i.sort():
-                        new_groups.append([indices[x] for x in bead])
-              
+                if matched_maps:
+                    match=False
+                    for i in matched_maps:
+                        sorted_match=sorted(i)
+                        sorted_bead=sorted(bead)
+                        if sorted_match ==sorted_bead:
+                            match=True
+                        #if bead.sort() != i.sort():
+                            #new_groups.append([indices[x] for x in bead])
+                    if not(match): 
+                        new_groups.append([int(core_map[x]) for x in bead])
+
+                else:
+                    new_groups.append([int(core_map[x]) for x in bead])
+                    #new_groups.append([indices[x] for x in bead])
     ring_beads = new_groups[:]
     # Add non-ring atoms
     new_groups += matched_maps
@@ -548,15 +566,22 @@ def get_paths(A_atom,mol):
     return path_matrix
                 
 
+def assign_atom_maps(mol_dict):
+    
+    #Assign atom maps, allowing indexes to be passed from major fragments to subfragments.
+    for atom in mol_dict.GetAtoms():
+        atom.SetAtomMapNum(atom.GetIdx())
+    return mol_dict
 
-def mapping(mol,ring_atoms,matched_maps,n_iter):
+def mapping(mol,ring_atoms,matched_maps,n_iter,mol_dict):
     #Initialise data structures
     #mol = Chem.MolFromSmiles(smiles)
     A_atom = np.asarray(Chem.GetAdjacencyMatrix(mol))
     path_matrix = floyd_warshall(csgraph=A_atom,directed=False)
     w_init = [atom.GetMass() for atom in mol.GetAtoms()]
     #w_init = [1.0 for atom in mol.GetAtoms()]
-    ring_beads,comp,A_init = group_rings(A_atom,ring_atoms,matched_maps,mol)
+    assign_atom_maps(mol_dict) #Assign atom maps to allow tracking of atom indicies between subfragments
+    ring_beads,comp,A_init = group_rings(A_atom,ring_atoms,matched_maps,mol_dict)
     #w_init = get_weights(comp,w_init)
 
     # Do spectral mapping iterations
@@ -634,7 +659,7 @@ def get_smi(bead,mol):
     #Work out aromaticity by looking for lowercase c and heteroatoms
     ring_size = 0
     frag_size = 0
-    lc = re.compile('[cn([nH\])os]+')
+    lc = re.compile('[cn([nH\\])os]+')
     lc = string_lst = ['c','\\[nH\\]','(?<!\\[)n','o']
     lowerlist = re.findall(r"(?=("+'|'.join(string_lst)+r"))",bead_smi)
     
@@ -675,6 +700,7 @@ def get_smi(bead,mol):
 
     if not Chem.MolFromSmiles(bead_smi):
         bead_smi = Chem.rdmolfiles.MolFragmentToSmiles(mol,bead,kekuleSmiles=True)
+        bead_smi=bead_smi.replace(":","") #MolFragmentToSmiles with kekuleSMILES sometimes returns fragments with ':', even when fragments are contiguous. This removes that
         ring_size = 0
         frag_size = 0
 
@@ -1047,8 +1073,8 @@ def get_masses(all_smi,A_cg,virtual):
         excess_mass = np.sum(A_cg[b])*m_H
         masses.append(frag_mass-excess_mass)
 
-    print(masses)
-    print(virtual)
+    #print(masses)
+    #print(virtual)
     #Redistribute virtual masses
     for vsite,refs in virtual.items():
         vmass = masses[vsite]
@@ -1056,7 +1082,7 @@ def get_masses(all_smi,A_cg,virtual):
         for rsite,weight in refs.items():
             masses[rsite] += weight*vmass
 
-    print(masses)
+    #print(masses)
     return masses
             
 
@@ -1306,16 +1332,17 @@ def tune_bead(var_bead,var_type,fix_bead,fix_type):
 smi = sys.argv[1]
 mol_name = 'MOL'
 mol = Chem.MolFromSmiles(smi)
+mol_dict = Chem.MolFromSmiles(smi) #Create second mol object to allow atom mapping; this allows tracking of atoms when assessing molecular fragments
 
 #Coarse-grained mapping
 matched_maps,matched_beads = get_smarts_matches(mol)
 ring_atoms = get_ring_atoms(mol)
-A_cg,beads,ring_beads,path_matrix = mapping(mol,ring_atoms,matched_maps,3)
+A_cg,beads,ring_beads,path_matrix = mapping(mol,ring_atoms,matched_maps,3,mol_dict)
 non_ring = [b for b in range(len(beads)) if not any(b in ring for ring in ring_beads)]
 
 #Parametrise beads
 tuning = bool(int(sys.argv[4]))
-print(tuning)
+#print(tuning)
 bead_types,charges,all_smi,DG_data = get_types(beads,mol,ring_beads)
 
 #Generate atomistic conformers

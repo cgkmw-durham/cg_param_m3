@@ -10,13 +10,67 @@ frag_smi = Chem.rdmolfiles.MolFragmentToSmiles(moli,indices)
 
 
 
-Lines 440-442: Added new loop and if statement
-for i in matched_maps:
-      if bead.sort() != i.sort():
-            new_groups.append([indices[x] for x in bead])
+Lines 440-450: Added new loop and if statement
+if matched_maps:
+     match = False
+     for i in matched_maps:
+          sorted_match=sorted(i)
+          sorted_bead=sorted(bead)
+          if sorted_match ==sorted_bead:
+               match=True
+     if match:
+          new_groups.append([indices[x] for x in bead])
+else:
+     new_groups.append([indices[x] for x in bead])
 
 -----Addresses an issue with molecules containing a ring with internal atoms (i.e. a fused 6,5 ring) and a matched map fragment (usually a charged group).
 -----e.g. ClC1=CC=C(SC(/C=C/C(CCC/2)=C(C3=CC(C)=CC(C)=C3)C2=C\C=C4N(CCCS(=O)([O-])=O)C(C=C(Cl)C=C5)=C5S\4)=[N+]6CCCS(=O)([O-])=O)C6=C1
 -----The updated cg_param now checks to ensure the matched maps aren't added to the "new_groups" list following the handling of the ring molecule's internal bead.
 -----The matched fragments are mapped elsewhere so should be skipped in this routine.
 -----The new loop checks through each mapped group and makes sure the current new bead is not already mapped. Values are sorted to ensure group indexes are properly compared.
+
+
+
+
+
+
+Line 422-427, 451, 453, 562-569, 576-577, 1327, 1332: Added use of atom mapping to track atom indices between subfragments.
+new_groups.append([int(core_map[x]) for x in bead])
+...
+assign_atom_maps(frag_mol)
+core_map=re.findall(r"\:([^\]]*)\]",frag_smi)
+if len(core_map) != len(indices):
+	core_map.insert(0,0)
+...
+def assign_atom_maps(mol_dict):
+    
+    #Assign atom maps, allowing indexes to be passed from major fragments to subfragments.
+    for atom in mol_dict.GetAtoms():
+        atom.SetAtomMapNum(atom.GetIdx())
+    return mol_dict
+...
+def mapping(mol,ring_atoms,matched_maps,n_iter,mol_dict):
+...
+    assign_atom_maps(mol_dict) #Assign atom maps to allow tracking of atom indicies between subfragments
+    ring_beads,comp,A_init = group_rings(A_atom,ring_atoms,matched_maps,mol_dict)
+...
+mol_dict = Chem.MolFromSmiles(smi) 
+...
+A_cg,beads,ring_beads,path_matrix = mapping(mol,ring_atoms,matched_maps,3,mol_dict)
+
+-----Atom maps are designed for fragment indices during reactions. 
+-----Useful for tracking subfragment identities, where fragment would otherwise be renumbered to reflect new connectivity.
+-----llows generatlisation of algorithm to extened ring structures.
+-----e.g. c1cc2CCC4CCCc3ccc(c1)c2c34
+
+
+
+
+
+
+Line 704: Solved error in parameterisation, where fragments are incorrectly assessed as if disconnected.
+bead_smi=bead_smi.replace(":","")
+
+-----RDKit module MolToSmiles with option 'kekuleSmiles=True' sometimes returns ':' in fragments despite them being contiguous.
+-----e.g. ClC1=CC=C(SC(/C=C/C(CCC/2)=C(C3=CC(C)=CC(C)=C3)C2=C\C=C4N(CCCS(=O)([O-])=O)C(C=C(Cl)C=C5)=C5S\4)=[N+]6CCCS(=O)([O-])=O)C6=C1 
+-----Ad hoc fix to resolve this issue
