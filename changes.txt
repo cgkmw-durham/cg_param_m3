@@ -47,5 +47,10 @@ Inclusion of new sulfonate parameteriasation and ester bead assignment:
 ----- Added new assignments dereived for sulfonates in Ref [1] above. The ester bead assignements are derieved in a further publication (in preparation).
 
 Misc Bug Fixes:
+
+----- Line 422-427, 451, 453, 562-569, 576-577, 1327, 1332: Added use of atom mapping to track atom indices between subfragments.
+----- Lines 440-450: Added new loop and if statement to prevent manually matched groups being double counted
 ----- Line 478: Added '.split(".")[0]' to prevent crashes when identical manually-assigned groups are in a molecule.
------ Line 503-506: Added if statement checks to ensure identical manually-assigned groups are all counted independently in paramerisation.   
+----- Line 503-506: Added if statement checks to ensure identical manually-assigned groups are all counted independently in paramerisation.
+----- Line 704: Solved error in parameterisation, where fragments are incorrectly assessed as if disconnected. Ad hoc fix removed these colons.
+
