@@ -1526,15 +1526,15 @@ def get_smarts_matches(mol):
     smarts_strings = {
     'S([O-])(=O)(=O)O'  :    'Q2',
     '[S;!$(*OC)]([O-])(=O)(=O)'   :    'Q3',# Reparameterised to Q3 from SQ4. Q1p for polyfluorinated
-    '[C][N+;D3]([C;D1])[C;D1]' : 'Q1p', # Tertiary Ammonium
-    'CCC[N+]' : 'SQ1p',  #Primary Ammonium
-    #'CCC[N+;D1]' : 'Q4',  #Primary Ammonium
-    #'C[N+;D2]' : 'TQ4',  #Primary Ammonium
-    'CC[N+;D2]C' : 'SQ1p', #Secondary Ammonium
-    'C[N+;D2]C(C)C' : 'Q3', #Secondary Ammonium
     'C[N+]([C])([C])[C]' : 'SQ3',  #Tetramethylammonium, Benzyl quat. Brached and hard to access hence assignment
     '[C;D2][N+;D4]([C;D2])([C;D2])[C;D2]' : 'Q4', #Tetraalkylammonium, highly branched.
     '[N+;D2][C;D1]' : 'TQ2', # Pyridinium, Imideazolium and reserve cases for small highly branched fragments.
+    '[C][N+;D3]([C;D1])[C;D1]' : 'Q1p', # Tertiary Ammonium
+    'CC[N+;D2]C' : 'SQ1p', #Secondary Ammonium
+    'C[N+;D2]C(C)C' : 'Q3', #Secondary Ammonium
+    'CCC[N+]' : 'SQ1p',  #Primary Ammonium
+    #'CCC[N+;D1]' : 'Q4',  #Primary Ammonium
+    #'C[N+;D2]' : 'TQ4',  #Primary Ammonium
     'O=C[O;D2]':'SP2',    #Parameterisations for esters from diester paper
     'O=C[O-;D1]' : 'SQ5n', # SQ1p for polyfluorinated, SQ5n normally
     #'C[O]C' : 'TN6', # Parameterisations for >= 4 ether units. Default SN4
