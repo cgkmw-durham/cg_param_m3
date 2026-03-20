@@ -1,0 +1,28 @@
+cg_param_m3.py: automated mapping and parametrisation of organic molecules
+for the Martini 3 coarse-grained force field starting from SMILES
+
+    Copyright (C) 2026 Thomas D. Potter, Eoin M. Kearney and Mark A. Miller
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License (LGPL) in
+    conjunction with the GNU General Public License (GPL) as published by
+    the Free Software Foundation, either version 3 of the license, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License version 3 and the GNU General Public License version 3 along
+    with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+Dr Mark A. Miller
+Durham University
+Department of Chemistry
+South Road
+Durham DH1 3LE
+United Kingdom
+
+m.a.miller@durham.ac.uk
