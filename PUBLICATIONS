@@ -1,0 +1,9 @@
+If you use this software in your research, please read and cite the following papers:
+
+T.D. Potter, N. Haywood, A. Teixeira, G. Hodges, E.L. Barrett and M.A. Miller
+Partitioning into phosphatidylcholine–cholesterol membranes: liposome measurements, coarse-grained simulations, and implications for bioaccumulation
+Environ. Sci.: Processes Impacts, 2023, 25, 1082-1093 https://doi.org/10.1039/D3EM00081H
+
+T.D. Potter, E.L. Barrett and M.A. Miller
+Automated coarse-grained mapping algorithm for the Martini force field and benchmarks for membrane–water partitioning
+J. Chem. Theory Comput., 2021, 17, 5777-5791 https://doi.org/10.1021/acs.jctc.1c00322
