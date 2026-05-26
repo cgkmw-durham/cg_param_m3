@@ -1525,21 +1525,23 @@ def get_smarts_matches(mol):
     #Get matches to SMARTS strings
     smarts_strings = {
     'S([O-])(=O)(=O)O'  :    'Q2',
-    '[S;!$(*OC)]([O-])(=O)(=O)'   :    'Q3',# Reparameterised to Q3 from SQ4. Q1p for polyfluorinated
-    'C[N+]([C])([C])[C]' : 'SQ3',  #Tetramethylammonium, Benzyl quat. Brached and hard to access hence assignment
-    '[C;D2][N+;D4]([C;D2])([C;D2])[C;D2]' : 'Q4', #Tetraalkylammonium, highly branched.
-    '[N+;D2][C;D1]' : 'TQ2', # Pyridinium, Imideazolium and reserve cases for small highly branched fragments.
-    '[C][N+;D3]([C;D1])[C;D1]' : 'Q1p', # Tertiary Ammonium
-    'CC[N+;D2]C' : 'SQ1p', #Secondary Ammonium
-    'C[N+;D2]C(C)C' : 'Q3', #Secondary Ammonium
-    'CCC[N+]' : 'SQ1p',  #Primary Ammonium
-    #'CCC[N+;D1]' : 'Q4',  #Primary Ammonium
-    #'C[N+;D2]' : 'TQ4',  #Primary Ammonium
+    '[S;!$(*OC)]([O-])(=O)(=O)'   :    'Q3',# Reparameterised to Q3 from SQ4. Q1p for polyfluorinated. Substitued for fluorinated case occurs in def param_bead().
+    '[n+;R]([C;!R])[c;R]' : 'TQ2', # Pyridinium, Imideazolium and reserve cases for small highly branched fragments.
+    'C[N+]([C])([C])[C]' : 'SQ3p',  #Tetramethylammonium. For twin chain, harder to access cases, hence small 'S' assignment.
+    '[C;D2][N+;D4]([C;D2])([C;D2])[C;D2]' : 'Q4p', #Tetraalkylammonium, highly branched.
+    '[C][N+;D3]([C;D1])[C;D1]' : 'Q1p', # Tertiary Ammonium.
+    'CC[N+;D2]C' : 'Q1p', #Secondary Ammonium.
+    'C[N+;D2]C(C)C' : 'Q1p', #Secondary Ammonium. Alternative for complex cases with t-propyl branch.
+    'CC[N+]' : 'SQ1p',  #Primary Ammonium.
     'O=C[O;D2]':'SP2',    #Parameterisations for esters from diester paper
-    'O=C[O-;D1]' : 'SQ5n', # SQ1p for polyfluorinated, SQ5n normally
-    #'C[O]C' : 'TN6', # Parameterisations for >= 4 ether units. Default SN4
+    'O=C[O-;D1]' : 'SQ5n', # SQ1p for polyfluorinated, SQ5n normally. Substitued for fluorinated case occurs in def param_bead().
+    #'C[O]C' : 'TN6', # Parameterisations for >= 4 ether units. Default SN4. Alternative added below
     '[N+](=O)[O-]' : 'SN3a', # Parameterisation from Martini 3 small molecules paper (https://doi.org/10.1002/adts.202100391). Off by default, causes an error in O=[N+]([O-])c1ccc(-c2nc3cc4nc5ccccc5nc4cc3[nH]2)cc1O. Under investiation 
-    'CC[N+](C)(C)[O-]' : 'P6',
+    'CC[N+](C)(C)[O-]' : 'P6', #Amine oxide.
+    'Ccc[-O]' : 'SQ1n',#Phenol parameterisation.
+    'Clcc[-O]' : 'SQ1n',#Phenol parameterisation.
+    'Brcc[-O]' : 'SQ1n',#Phenol parameterisation.
+    'Fcc[-O]' : 'SQ1n',#Phenol parameterisation.
     'CP(=S)(C)[S-]' : 'Q1'
     #'CC' : 'C2',
     #'OO' : 'P5'
