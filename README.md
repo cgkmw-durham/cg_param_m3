@@ -1,32 +1,26 @@
 # cg_param_m3
 Coarse-grained mapping and parametrisation for the Martini 3 forcefield. 
 
-This version supersedes branch cg_param_m3/martini3_v4 in this repository. It implements DASH for bead partial charge calculations (https://github.com/rinikerlab/DASH-tree#), and as such requires additional python dependicies compared to previous branches.
+This version supersedes branch cg_param_m3/martini3_v2 in this repository. 
 
 Run with: ./cg_param_m3.py -s "[SMILES]" -f [NAME]
 
 An explanation of the available options can be shown using: ./cg_param_m3.py -h
 
-Outputs .gro and .itp files compatible with Gromacs
+Outputs .gro and .itp files compatible with GROMACS
 
 Dependencies:
 
 *numpy/scipy
 *RDKit
 *requests
-*conda-build
-*pandas
-*pytables
-*pip
 
 The easiest way to install these dependencies is with conda
 
 ~~~~
-$ conda create -c rdkit -c conda-forge -n cg_param rdkit numpy scipy requests conda-build pandas pytables pip
+$ conda create -c rdkit -n cg_param rdkit numpy scipy requests
 $ conda activate cg_param
 ~~~~
-
-To enable DASH, it must be installed as per their github (https://github.com/rinikerlab/DASH-tree#). DASH must be downloaded, and developer mode activated within the cg_param conda environemnt. Then it can be activated on the commandline using the "-q" flag.
 
 # Publication
 
