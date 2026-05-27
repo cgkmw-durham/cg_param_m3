@@ -83,12 +83,13 @@ preset_beads = {
     'CC(=O)O':'SN5',
     'CCC(=O)O':'N4',
     'COC=O':'N6',
-    'COC(C)=O':'N4'
-    #'CCO' : 'SP2', #Experimental ether parameterisations, apply with care
-    #'COC' : 'SP2'
-    #'CCOC' : 'P2',
-    #'COCC' : 'P2',
-    #'CCOC' : 'P4',
+    'COC(C)=O':'N4',
+    'Cc1ccccc1[NH3+]' : 'SQ1p',#Aniline parameterisation  --- Also, see def get_smarts_matches()
+    '[O-]c1ccccc1' : 'SQ1n',#Phenol parameterisation
+    '[O-]c1ccccc1C' : 'SQ1n',#Phenol parameterisation
+    '[O-]c1ccccc1Cl' : 'SQ1n',#Phenol parameterisation
+    '[O-]c1ccccc1Br' : 'SQ1n',#Phenol parameterisation
+    '[O-]c1ccccc1F' : 'SQ1n'#Phenol parameterisation
     }
 
 def read_DG_data(DGfile):
@@ -1538,10 +1539,6 @@ def get_smarts_matches(mol):
     #'C[O]C' : 'TN6', # Parameterisations for >= 4 ether units. Default SN4. Alternative added below
     '[N+](=O)[O-]' : 'SN3a', # Parameterisation from Martini 3 small molecules paper (https://doi.org/10.1002/adts.202100391). Off by default, causes an error in O=[N+]([O-])c1ccc(-c2nc3cc4nc5ccccc5nc4cc3[nH]2)cc1O. Under investiation 
     'CC[N+](C)(C)[O-]' : 'P6', #Amine oxide.
-    'Ccc[-O]' : 'SQ1n',#Phenol parameterisation.
-    'Clcc[-O]' : 'SQ1n',#Phenol parameterisation.
-    'Brcc[-O]' : 'SQ1n',#Phenol parameterisation.
-    'Fcc[-O]' : 'SQ1n',#Phenol parameterisation.
     'CP(=S)(C)[S-]' : 'Q1'
     #'CC' : 'C2',
     #'OO' : 'P5'
