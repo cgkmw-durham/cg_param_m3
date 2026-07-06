@@ -1181,7 +1181,7 @@ def write_angles(itp,bonds,constraints):
                 if bonds[bi] not in constraints or bonds[bj] not in constraints:
                     x = [i for i in bonds[bi] if i != shared][0]
                     z = [i for i in bonds[bj] if i != shared][0]
-                    angles.append([x,int(shared),z])
+                    angles.append([x,int(shared[0]),z])
     #Calculate and write to file
     if angles:
         itp.write('\n[angles]\n')
