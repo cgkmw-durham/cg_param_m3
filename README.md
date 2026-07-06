@@ -24,9 +24,9 @@ $ conda activate cg_param
 
 # Publication
 
-This software is associated with the following publication, in press:
+This software is associated with the following publication:
 
-A. Gredelj, J. Roberts, E.M. Kearney, E.L. Barrett, N. Haywood, D. Sheffield, G. Hodges and M.A. Miller, Predicting aquatic toxicity of anionic hydrocarbon and perfluorinated surfactants using membrane-water partition coefficients from coarse-grained simulations, Environ. Sci.: Processes Impacts, in press 2025, https://doi.org/10.1039/D4EM00649F
+A. Gredelj, J. Roberts, E.M. Kearney, E.L. Barrett, N. Haywood, D. Sheffield, G. Hodges and M.A. Miller, Predicting aquatic toxicity of anionic hydrocarbon and perfluorinated surfactants using membrane-water partition coefficients from coarse-grained simulations, Environ. Sci.: Processes Impacts, 2025, 27, 1131-1144, https://doi.org/10.1039/D4EM00649F
 
 For existing publications in the development of cg_param, please cite the following reference:
 
