@@ -363,7 +363,7 @@ def process_rings(ring_beads,matched_maps,groups):
 
 def new_connectivity(groups,oldA):
     # Get A matrix for new mapping
-    newA = np.zeros((len(groups),len(groups)),dtype=int)
+    newA = np.zeros((len(groups),len(groups)),dtype=float)
     for i,gi in enumerate(groups):
         for j,gj in enumerate(groups[i+1:]):
             for k in gi:
@@ -1011,7 +1011,7 @@ def get_alogps(bead_smi):
     if args.v:print("Generating bead log Kow Values: ")
     try:
         if args.v:print("Accessing ALOGPS Webserver....: ")
-        alogps = requests.get('http://vcclab.org/web/alogps/calc?SMILES=' + bead_smi).text
+        alogps = requests.get('https://vcclab.org/web/alogps/calc?SMILES=' + bead_smi).text
     except:
         if args.v:print("ALOGPS Server access failed")
         logK = rdMolDescriptors.CalcCrippenDescriptors(Chem.MolFromSmiles(bead_smi))[0]
