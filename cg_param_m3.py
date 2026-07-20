@@ -309,7 +309,7 @@ def process_rings(ring_beads,matched_maps,groups):
 
 def new_connectivity(groups,oldA):
     # Get A matrix for new mapping
-    newA = np.zeros((len(groups),len(groups)),dtype=int)
+    newA = np.zeros((len(groups),len(groups)),dtype=float)
     for i,gi in enumerate(groups):
         for j,gj in enumerate(groups[i+1:]):
             for k in gi:
@@ -856,7 +856,7 @@ def param_bead(bead,bead_smi,ring_size,frag_size,ring,qbead,don,acc,DG_data):
 def get_alogps(bead_smi):
     #Gets ALOGPS value from server. If this fails for whatver reason, use Wildmann-Crippen
     try:
-        alogps = requests.get('http://vcclab.org/web/alogps/calc?SMILES=' + bead_smi).text
+        alogps = requests.get('https://vcclab.org/web/alogps/calc?SMILES=' + bead_smi).text
     except:
         logK = rdMolDescriptors.CalcCrippenDescriptors(Chem.MolFromSmiles(bead_smi))[0]
         print(bead_smi,'Data from Wildmann-Crippen')
